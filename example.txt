@@ -1,0 +1,5 @@
+hello world
+this is a test
+pattern matching is fun
+no match here
+another pattern
