@@ -1,4 +1,4 @@
-# fynd
+# Fynd
 
 ## Overview
 
