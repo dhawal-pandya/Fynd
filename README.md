@@ -4,7 +4,7 @@
 
 `fynd` is a command-line utility inspired by `grep`. It allows users to search for patterns within files or standard input using regular expressions. Simple yet powerful, it provides a way to locate specific lines of text matching your regex patterns.
 
-Additionally, I also included a **Lorem Ipsum Generator**, useful for generating random sentences for testing `fynd`. Feel free to tinker around with it.
+Additionally, the repository includes a **Lorem Ipsum Generator**, useful for generating random sentences for testing text layouts or other placeholder needs.
 
 ---
 
@@ -19,8 +19,6 @@ Additionally, I also included a **Lorem Ipsum Generator**, useful for generating
 
 ## Installation
 
-To install and make `fynd` work as a system-wide command:
-
 ### macOS / Linux
 
 1. **Clone the repository**:
@@ -30,13 +28,9 @@ To install and make `fynd` work as a system-wide command:
    ```
 2. **Build the binary**:
    ```bash
-   go build -o fynd fynd.go
+   go build -o /usr/local/bin/fynd fynd.go
    ```
-3. **Move the binary to a system-wide path**:
-   ```bash
-   sudo mv fynd /usr/local/bin/
-   ```
-4. **Verify installation**:
+3. **Verify installation**:
    ```bash
    fynd "pattern" sample.txt
    ```
@@ -63,24 +57,89 @@ To install and make `fynd` work as a system-wide command:
 
 ## Usage
 
-### `fynd`
+### Run Manually
+You can pipe any log-producing command into `fynd`:
 
 ```bash
-fynd <pattern> [file]
+tail -f /var/log/system.log | fynd "error"
 ```
 
-- `<pattern>`: The regex pattern to search for.
-- `[file]`: The file to search in. Use `-` to read from standard input.
+### Run System-Wide
 
-**Example**:
-```bash
-fynd "error" log.txt
-```
+#### **macOS** (Using `launchd`)
+1. Create a `launchd` configuration file:
+   ```bash
+   sudo nano /Library/LaunchAgents/com.dhawal.fynd.plist
+   ```
 
-**Using Standard Input**:
-```bash
-echo "hello world" | fynd "hello"
-```
+2. Add the following content:
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <plist version="1.0">
+   <dict>
+       <key>Label</key>
+       <string>com.dhawal.fynd</string>
+       <key>ProgramArguments</key>
+       <array>
+           <string>/usr/local/bin/fynd</string>
+       </array>
+       <key>RunAtLoad</key>
+       <true/>
+       <key>StandardInputPath</key>
+       <string>/var/log/system.log</string>
+       <key>StandardOutPath</key>
+       <string>/var/log/fynd.log</string>
+   </dict>
+   </plist>
+   ```
+
+3. Load and start the service:
+   ```bash
+   sudo launchctl load -w /Library/LaunchAgents/com.dhawal.fynd.plist
+   ```
+
+4. Verify that `fynd` is running:
+   ```bash
+   launchctl list | grep com.dhawal.fynd
+   ```
+
+#### **Debian/Ubuntu** (Using `systemd`)
+1. Create a systemd service file:
+   ```bash
+   sudo nano /etc/systemd/system/fynd.service
+   ```
+
+2. Add the following content:
+   ```ini
+   [Unit]
+   Description=fynd Log Formatter
+   After=network.target
+
+   [Service]
+   ExecStart=/usr/local/bin/fynd "pattern"
+   Restart=always
+   StandardInput=file:/var/log/syslog
+   StandardOutput=file:/var/log/fynd.log
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+3. Enable and start the service:
+   ```bash
+   sudo systemctl enable fynd
+   sudo systemctl start fynd
+   ```
+
+4. Verify that `fynd` is running:
+   ```bash
+   systemctl status fynd
+   ```
+
+5. Check logs:
+   ```bash
+   tail -f /var/log/fynd.log
+   ```
 
 ---
 
@@ -104,11 +163,8 @@ Lorem ipsum dolor sit amet consectetur.
 Sed do eiusmod tempor incididunt ut labore et dolore? Magna aliqua ut enim.
 ```
 
-- Use it to test the `fynd` program
-
-```
-go run lorem.go | fynd "et"
-```
+**Use Case**:
+- Useful for testing text layouts and placeholders in applications or designs.
 
 ---
 
